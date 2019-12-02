@@ -135,10 +135,6 @@ ally.append(y)
 # recherche du voisinage de x
 neighbors(x, allx, ally)
 
-# print("Données utilisées: ",data)
-# print("Vecteur d'affectation: ",allx)
-# print("Valeur de l'évaluation: ",ally)
-
 # on supprime les solutions dominées
 compute_dominance(allx, ally)
 
@@ -153,3 +149,9 @@ while sorted(prev_allx) != sorted(allx):
 print("Données utilisées: ",data)
 print("Vecteurs d'affectation solutions: ",allx)
 print("Valeurs des évaluations: ",ally)
+
+# on crée un vecteur de poids aléatoire simulant les préférences du décideur
+w=[random.uniform(0,1) for i in range(p)]
+
+# on le normalise pour que la somme du vecteur fasse 1
+w=[w[i]/sum(w) for i in range(p)]
