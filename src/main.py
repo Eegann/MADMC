@@ -2,6 +2,8 @@ import math
 import random
 import copy
 
+from pairwise_max_regret import *
+
 ##### Paramètres du programme #####
 
 # n objets, entre 1 et 200
@@ -155,3 +157,5 @@ w=[random.uniform(0,1) for i in range(p)]
 
 # on le normalise pour que la somme du vecteur fasse 1
 w=[w[i]/sum(w) for i in range(p)]
+
+computePMR(x[0],x[1])
