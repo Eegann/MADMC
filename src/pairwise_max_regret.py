@@ -4,11 +4,11 @@ from gurobipy import *
 
 def computePMR(x,y):
     m = Model("Pairwise Max Regret")
+    m.setParam("OutputFlag",0)
     w=[]
     for i in range(len(x)):
         w.append(m.addVar(vtype=GRB.CONTINUOUS))
     for i in range(len(w)):
-        m.addConstr(w[i] <= 1)
         m.addConstr(w[i] >= 0)
     m.addConstr(quicksum(w[i] for i in range(len(w))) <= 1)
     
@@ -17,7 +17,5 @@ def computePMR(x,y):
     m.optimize()
     
     obj = m.getObjective()
-    
-    print(w[0].X,w[1].X)
-    
-    pritn(obj.getValue())
+
+    return obj.getValue()
