@@ -17,8 +17,20 @@ def get_data(n,p):
     return data
     # print(data)
 
-def write_res(ally, n, p, nb_q, time_PLS, time_IE):
-    with open('../res/results_'+str(n)+'_'+str(p), 'a+') as f:
+def write_res_proc1_PLS(ally, n, p, nb_q, time_PLS, time_IE):
+    with open('../res/results_proc1_pls_'+str(n)+'_'+str(p), 'a+') as f:
+        f.truncate(0)
+        f.write('Temps d\'execution de la recherche locale: '+ str(round(time_PLS,2))+'s\n')
+        f.write('Temps d\'execution de l\'elicitation incrementale: '+ str(round(time_IE,2))+'s\n')
+        f.write('Nombre de questions: '+ str(nb_q)+'\n')
+        f.write('Nombre de Pareto: '+ str(len(ally))+'\n')
+        for y in ally:
+            for v in y:
+                f.write(str(v)+" ")
+            f.write('\n')
+
+def write_res_proc1_nd_tree(ally, n, p, nb_q, time_PLS, time_IE):
+    with open('../res/results_proc1_nb_tree_'+str(n)+'_'+str(p), 'a+') as f:
         f.truncate(0)
         f.write('Temps d\'execution de la recherche locale: '+ str(round(time_PLS,2))+'s\n')
         f.write('Temps d\'execution de l\'elicitation incrementale: '+ str(round(time_IE,2))+'s\n')
