@@ -17,6 +17,17 @@ def get_data(n,p):
     return data
     # print(data)
 
+def write_res_proc2_ILS(ally, n, p, nb_q, time):
+    with open('../res/results_proc2_ils_'+str(n)+'_'+str(p), 'a+') as f:
+        f.truncate(0)
+        f.write('Temps d\'execution : '+ str(round(time,2))+'s\n')
+        f.write('Nombre de questions: '+ str(nb_q)+'\n')
+        f.write('Nombre de Pareto: '+ str(len(ally))+'\n')
+        for y in ally:
+            for v in y:
+                f.write(str(v)+" ")
+            f.write('\n')
+
 def write_res_proc1_PLS(ally, n, p, nb_q, time_PLS, time_IE):
     with open('../res/results_proc1_pls_'+str(n)+'_'+str(p), 'a+') as f:
         f.truncate(0)

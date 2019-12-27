@@ -1,11 +1,28 @@
 import pairwise_max_regret
 
-def mmr_incremental_elicitaiton(allx, ally, w):
+# la preference d'un decideur comme une boite noire
+def query_Is_x_better_then_y(x,y,w):
+    
+    scorex = 0
+    scorey = 0
+    
+    # on calcule les scores des deux solutions x et y selon w
+    for i in range(len(w)):
+        scorex += x[i] * w[i]
+        scorey += y[i] * w[i]
+        
+    #print("y - x avec le vecteur de poids du décideur (doit être inférieur à Min Max Regret",mmr,"): ", scorey - scorex)
+    if scorex >= scorey:
+        return True;
+    else:
+        return False;
+
+def mmr_incremental_elicitaiton(allx, ally, w, evidence):
+    
     mmr = 1
     opt = []
     opt_value = []
     nb_q = 0
-
     # on itère tant qu'on trouve un Min Max Regret > 0
     while (mmr > 0):
 
@@ -15,7 +32,7 @@ def mmr_incremental_elicitaiton(allx, ally, w):
             temp_pmr = []
             for j in range(len(ally)):
                 if i != j:
-                    temp_pmr.append(pairwise_max_regret.computePMR(ally[i], ally[j]))
+                    temp_pmr.append(pairwise_max_regret.computePMR(ally[i], ally[j],evidence))
                 else:
                     temp_pmr.append(0)
             pmr.append(temp_pmr)
@@ -49,27 +66,19 @@ def mmr_incremental_elicitaiton(allx, ally, w):
         y = ally[argmax_mr[argmin_mmr]]
         #print("x: ", ally[argmin_mmr], "y: ", ally[argmax_mr[argmin_mmr]])
 
-        scorex = 0
-        scorey = 0
-
-        # on calcule les scores des deux solutions x et y
-
-        for i in range(len(w)):
-            scorex += x[i] * w[i]
-            scorey += y[i] * w[i]
-
-        #print("y - x avec le vecteur de poids du décideur (doit être inférieur à Min Max Regret",mmr,"): ", scorey - scorex)
-
         if (mmr > 0):
             nb_q+=1
             # on retire la solution qui n'est pas désirée par le décideur
-            if scorex >= scorey:
+            if query_Is_x_better_then_y(x,y,w):
+                evidence.append([x,y])   # on obtient un fait: x est meilleur que y
                 allx.pop(argmax_mr[argmin_mmr])
                 ally.pop(argmax_mr[argmin_mmr])
             else:
+                evidence.append([y,x]);  # on obtient un fait: y est meilleur que x
                 allx.pop(argmin_mmr)
                 ally.pop(argmin_mmr)
         else:
             opt = allx[argmin_mmr]
             opt_value = ally[argmin_mmr]
-    return [opt, opt_value,nb_q]
+    return [opt, opt_value,nb_q, evidence, mr[0]]
+

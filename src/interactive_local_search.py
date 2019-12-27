@@ -1,40 +1,15 @@
 import random
 import copy
+import incremental_elicitation
 
-def neighbor_local_search(n,k,p,data):
-
-    # Parameters
-    # ----------
-    # n : int.
-    #     nb d'objects.
-    # k : int.
-    #     nb d'objects à choisir.
-    # p : int
-    #     nb de criteres.
-    # data : int[n][p]
-    #     tous les objects.
-
-    # Returns
-    # -------
-    # front_pareto, eval des elements
-
-    def create_random_solution():
-        x = [0] * n
-        # on récupère k valeur aléatoire entre 0 et n-1
-        v = random.sample(range(0, n - 1), k)
-
-        # on met x[i] à 1 pour les valeurs aléatoires précédentes
-        i = 0
-        while i < k:
-            x[v[i]] = 1
-            i += 1
-        return x
-
+def interactive_local_search(n,k,p,data,w):
+    ################
+    ### fonctions locales
+    ###############
     def compute_evaluation(x):
-
         y = [0] * p
         j = 0
-
+    
         # on fait ici une somme pour faire l'evaluation
         while j < p:
             i = 0
@@ -43,7 +18,50 @@ def neighbor_local_search(n,k,p,data):
                 i += 1
             j += 1
         return y
-
+    
+    def create_starting_solution():
+        ###############
+        ### fonction locale
+        ##############
+        def find_best_objets(w):
+            # calculer le score d'un objet selon w
+            compute_score = lambda i: sum( [ data[i][j] * w[j] for j in range(len(w)) ] );
+            # ordonner les objets selon leurs scores 
+            index = list(range(len(data)));
+            index_ordered = sorted( index , key = compute_score); # ordre croissant
+            index_ordered = reversed(index_ordered);   # decroissant
+            index_ordered = list(index_ordered)     # convertir a une liste
+            x = [1 if i in index_ordered[:k] else 0 for i in list(range(len(data)))]; # on prend les k meilleurs objets
+            return x # une solution
+        
+        ############
+        ### main
+        ############
+        
+        evidence = [];
+        # parametre
+        m = 2 * n;
+        
+        # Etape 1: on cree un ensemble de vecteur de poids aléatoire simulant les préférences du décideur
+        ws = [];
+        for i in range(m):   
+            # on crée un vecteur de poids aléatoire simulant les préférences du décideur
+            w = [random.uniform(0, 1) for i in range(p)] 
+            # on le normalise pour que la somme du vecteur fasse 1
+            w = [w[i] / sum(w) for i in range(p)]
+            # on ajoute w dans ws
+            ws.append(w);
+        # Etape 2: pour chaque w trouver une solution optimale
+        xs = [find_best_objets(w) for w in ws];  # pour chaque w trouver une solution optimale
+        
+        # Etape 3: find le most promising solution within xs
+        allx = xs;
+        ally = [compute_evaluation(x) for x in xs];
+        compute_dominance(allx,ally)
+        x, eval_x, nb_q, evidence, mr =  incremental_elicitation.mmr_incremental_elicitaiton(allx, ally, w, evidence)
+        
+        return x, eval_x, evidence
+    
     def compute_dominance(allx, ally):
         toremovex = []
         toremovey = []
@@ -126,28 +144,42 @@ def neighbor_local_search(n,k,p,data):
                             compute_dominance2(allx,ally,x1,y1)
                     j += 1
             i += 1
-
+            
+    #######################
+    ### MAIN : combinaison de LS et Incremental_elicitation
+    #######################
+            
+    ######################
+    ### Find a promising starting solution
+    ######################
     # création d'un vecteur aléatoire et calcule de son évaluation
-    x = create_random_solution()
+    x, eval_x, evidence = create_starting_solution()
     y = compute_evaluation(x)
+    
+    #######################
+    ### Local improvement
+    ######################
+    improve = True;
+    nb_q = 0;
+    while improve:
+        # création de listes pour stocker nos solutions et leur évaluation
+        allx = []
+        allx.append(x)
+        ally = []
+        ally.append(y)
+    
+        # recherche du voisinage de x
+        neighbors(x, allx, ally)
+    
+        # on supprime les solutions dominées
+        compute_dominance(allx, ally)
 
-    # création de listes pour stocker nos solutions et leur évaluation
-    allx = []
-    allx.append(x)
-    ally = []
-    ally.append(y)
-
-    # recherche du voisinage de x, les voisins et leurs evaluations sont stockes dans allx et ally
-    neighbors(x, allx, ally)
-
-    # on supprime les solutions dominées
-    compute_dominance(allx, ally)
-
-    prev_allx = []
-    while sorted(prev_allx) != sorted(allx):
-        prev_allx = copy.deepcopy(allx)
-        for x in allx:
-            neighbors(x, allx, ally)    # recherche du voisinage de x, les voisins et leurs evaluations sont stockes dans allx et ally
-        compute_dominance(allx, ally)       # on supprime les solutions dominées
-
-    return [allx,ally]
+        newx, eval_newx, new_nb_q, evidence, mr_x =  incremental_elicitation.mmr_incremental_elicitaiton(allx, ally, w, evidence)
+        nb_q += new_nb_q;
+        if mr_x > 0:
+            x = newx;
+            y = eval_newx;
+        else:
+            improve = False;
+            
+    return x, y,nb_q
