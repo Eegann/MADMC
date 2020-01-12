@@ -175,11 +175,11 @@ def interactive_local_search(n,k,p,data,w):
         compute_dominance(allx, ally)
 
         newx, eval_newx, new_nb_q, evidence, mr_x =  incremental_elicitation.mmr_incremental_elicitaiton(allx, ally, w, evidence)
-        nb_q += new_nb_q;
+        nb_q += new_nb_q
         if mr_x > 0:
-            x = newx;
-            y = eval_newx;
+            x = newx
+            y = eval_newx
         else:
-            improve = False;
+            improve = False
             
     return x, y,nb_q

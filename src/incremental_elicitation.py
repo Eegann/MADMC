@@ -65,7 +65,7 @@ def mmr_incremental_elicitaiton(allx, ally, w, evidence):
         x = ally[argmin_mmr]
         y = ally[argmax_mr[argmin_mmr]]
         #print("x: ", ally[argmin_mmr], "y: ", ally[argmax_mr[argmin_mmr]])
-
+        #print(nb_q,mr)
         if (mmr > 0):
             nb_q+=1
             # on retire la solution qui n'est pas désirée par le décideur
